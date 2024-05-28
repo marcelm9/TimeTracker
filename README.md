@@ -32,7 +32,7 @@ python -m TimeTracker delete <name>
 python -m TimeTracker list
 ```
 
-### examples
+### example 1
 ```bash
 # create new tracker
 python -m TimeTracker new task1
@@ -47,6 +47,7 @@ python -m TimeTracker spend task1 5m
 python -m TimeTracker total task1 # -> 1h 35m
 ```
 
+### example 2
 ```bash
 # create new trackers
 python -m TimeTracker new task1-subtask1
