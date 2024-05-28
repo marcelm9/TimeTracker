@@ -59,7 +59,22 @@ class Database:
         return total_minutes
 
     @staticmethod
+    def __format_h_m(m):
+        h = int(m / 60)
+        if h == 0:
+            return f"{m}m"
+        else:
+            m = m % 60
+            if m == 0:
+                return f"{h}h"
+            else:
+                return f"{h}h {m}m"
+
+    @staticmethod
     def new(name):
+        if "." in name:
+            Log.error("Periods are not allowed in tracker names")
+            exit(1)
         path = get_path(name)
         if os.path.exists(path):
             Log.error(f"Tracker with name '{name}' already exists")
@@ -80,15 +95,7 @@ class Database:
         with open(path, "a") as f:
             f.write(f"{now()} | {m}m\n")
 
-        h = int(m / 60)
-        if h == 0:
-            Log.info(f"Tracking {m}m for {name}")
-        else:
-            m = m % 60
-            if m == 0:
-                Log.info(f"Tracking {h}h for {name}")
-            else:
-                Log.info(f"Tracking {h}h {m}m for {name}")
+        Log.info(f"Tracking {Database.__format_h_m(m)} for '{name}'")
 
     @staticmethod
     def delete(name):
@@ -106,7 +113,52 @@ class Database:
             Log.error("Aborting")
 
     @staticmethod
-    def total(name):
+    def total(name: str):
+        if "." in name:
+            if not (name.count(".") == 1 and name[-1] == "."):
+                Log.error(
+                    "When using category syntax, the period can only be the last character"
+                )
+                exit(1)
+
+            names = Database.__get_all_tracker_names()
+
+            filtered_names = [n for n in names if n.startswith(name[:-1])]
+            if len(filtered_names) == 0:
+                Log.info(f"No trackers matched '{name}'")
+                exit(1)
+            else:
+                total_m = 0
+                for n in filtered_names:
+                    with open(get_path(n), "r") as f:
+                        total_m += sum(
+                            [
+                                int(line.split("|")[1].strip().removesuffix("m"))
+                                for line in f.readlines()[1:]
+                            ]
+                        )
+                Log.info(
+                    f"Total time spend on category '{name[:-1]}' in {len(filtered_names)} trackers: {Database.__format_h_m(total_m)}"
+                )
+
+        else:
+            if name not in Database.__get_all_tracker_names():
+                Log.error(f"No tracker with name '{name}' found")
+                exit(1)
+
+            with open(get_path(name), "r") as f:
+                lines = f.readlines()
+
+            del lines[0]  # removes the "created at" line
+
+            m = sum(
+                [int(line.split("|")[1].strip().removesuffix("m")) for line in lines]
+            )
+
+            Log.info(f"Total time spent on '{name}': {Database.__format_h_m(m)}")
+
+    @staticmethod
+    def details(name):
         if name not in Database.__get_all_tracker_names():
             Log.error(f"No tracker with name '{name}' found")
             exit(1)
@@ -114,16 +166,22 @@ class Database:
         with open(get_path(name), "r") as f:
             lines = f.readlines()
 
-        del lines[0]  # removes the "created at" line
+        Log.info(f"Details for '{name}'")
+        print("YYYY MM DD HH MM SS")
+        print(lines[0], end="")
+        del lines[0]
 
-        m = sum([int(line.split("|")[1].strip().removesuffix("m")) for line in lines])
+        minutes = [int(line.split("|")[1].strip().removesuffix("m")) for line in lines]
 
-        h = int(m / 60)
-        if h == 0:
-            Log.info(f"Total time spent on '{name}': {m}m")
+        for l, m in zip(lines, minutes):
+            print(l.split("|")[0] + "| " + Database.__format_h_m(m))
+
+    @staticmethod
+    def list():
+        names = Database.__get_all_tracker_names()
+        if len(names) == 0:
+            Log.info("No trackers found")
         else:
-            m = m % 60
-            if m == 0:
-                Log.info(f"Total time spent on '{name}': {h}h")
-            else:
-                Log.info(f"Total time spent on '{name}': {h}h {m}m")
+            Log.info("Trackers:")
+            for name in names:
+                print(name)

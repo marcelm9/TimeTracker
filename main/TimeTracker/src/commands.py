@@ -7,7 +7,9 @@ def nargs(argc):
         def wrapper(*args, **kwargs):
             # Assuming the first argument is always the list we want to check
             if len(args) != argc:
-                Log.error(f"invalid number of arguments (expected {argc}, received {len(args)})")
+                Log.error(
+                    f"invalid number of arguments (expected {argc}, received {len(args)})"
+                )
                 exit(1)
             return func(*args, **kwargs)
 
@@ -24,6 +26,11 @@ class Commands:
             getattr(Commands, command)(*args)
         else:
             Log.error("no such command")
+
+    @staticmethod
+    @nargs(0)
+    def help(*args):
+        Log.info("Available commands: new, spend, total, details, list, delete")
 
     @staticmethod
     @nargs(1)
@@ -43,9 +50,14 @@ class Commands:
     @staticmethod
     @nargs(1)
     def details(*args):
-        pass
+        Database.details(args[0])
 
     @staticmethod
     @nargs(1)
     def delete(*args):
         Database.delete(args[0])
+
+    @staticmethod
+    @nargs(0)
+    def list(*args):
+        Database.list()
