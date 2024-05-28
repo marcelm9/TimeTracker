@@ -18,7 +18,7 @@ class Database:
 
     @staticmethod
     def __get_all_tracker_names():
-        return [f.name for f in os.scandir(DB_PATH) if not f.name == "__init__.py"]
+        return [f.name for f in os.scandir(DB_PATH) if f.name not in  ("__init__.py", "__pycache__")]
 
     @staticmethod
     def __parse_time_input(time_input):

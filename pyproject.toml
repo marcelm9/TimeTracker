@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "TimeTracker"
-version = "1.0.0"
+version = "1.0.1"
 description = ""
 authors = ["marcelm9 <marcel.menzel09@gmail.com>"]
 license = "MIT"
